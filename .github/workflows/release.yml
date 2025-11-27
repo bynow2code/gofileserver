@@ -58,6 +58,6 @@ jobs:
           # release title
           name: Release ${{ github.ref_name }}
           # 上传打包后的文件
-          artifacts: dist/geeksaver-*
+          artifacts: dist/gofileserver-*
           # release 正文
           #bodyFile: "body.md"
