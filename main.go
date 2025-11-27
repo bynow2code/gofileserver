@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 )
 
+var version = "0.0.0-dev"
+
 func main() {
 	dir := flag.String("dir", ".", "要共享的目录（默认当前目录）")
 	port := flag.String("port", "8080", "监听端口（默认8080）")
