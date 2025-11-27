@@ -40,15 +40,15 @@ jobs:
 
           # 打包后文件命名格式： [项目名]-[版本号]-[操作系统]-[架构].[扩展名]
           # 编译 Android arm64（ 版本
-          GOOS=linux GOARCH=arm64 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-android-arm64 ./main.go
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-android-arm64 ./main.go
           # 编译 Linux amd64 版本
-          GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-linux-amd64 ./main.go
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-linux-amd64 ./main.go
           # 编译 Windows amd64 版本
-          GOOS=windows GOARCH=amd64 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-windows-amd64.exe ./main.go
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-windows-amd64.exe ./main.go
           # 编译 macOS amd64 版本
-          GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-amd64 ./main.go
+          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-amd64 ./main.go
           # 编译 macOS arm64 版本
-          GOOS=darwin GOARCH=arm64 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-arm64 ./main.go
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-arm64 ./main.go
 
       - name: 创建 Github Release
         uses: ncipollo/release-action@v1
