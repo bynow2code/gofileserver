@@ -1,63 +1,92 @@
 # 工作流的名称。GitHub会在仓库的“Actions”标签下显示你的工作流名称
-name: Release
+name: Go Project Auto Release
+
 # 定义如何触发工作流
 on:
-  # 手动触发工作流时
+  # 手动触发工作流时（在GitHub网页界面可以手动点击运行）
   workflow_dispatch:
-  # 推送任意 tag 时
+
+  # 推送任意tag时触发（只有当推送的标签名称以v开头时才会运行）
   push:
     tags:
       - v*
 
+# 作业定义（一个工作流可以包含多个作业，这里只有一个发布作业）
 jobs:
-  # 作业 id
+  # 作业id（在同一个工作流中必须唯一）
   release:
-    # 作业名称
-    name: release ${{ github.ref_name }}
-    # 运行作业的机器类型
+    # 作业名称（在GitHub Actions界面中显示的名称）
+    name: 构建和发布 ${{ github.ref_name }}
+
+    # 运行作业的机器类型（使用GitHub托管的Ubuntu最新版本虚拟机）
     runs-on: ubuntu-latest #选择GitHub 托管运行器 linux
+
+    # 权限配置（定义工作流需要哪些GitHub API权限）
     permissions:
-      # 允许操作创建发布
+      # 允许工作流写入仓库内容（这是创建Release所必需的权限）
       contents: write
 
-    # 步骤
+    # 步骤序列（按顺序执行的一系列任务）
     steps:
-      # 步骤名称
-      - name: 切分支
+      # 步骤1：将代码仓库克隆到虚拟机中
+      - name: 检出代码仓库
         # 引用 GitHub Actions 市场中的 Action see:https://github.com/marketplace?type=actions
+        # 使用GitHub官方的checkout Action来获取代码
+        # 这个Action会将你的代码仓库克隆到虚拟机的workspace目录
         uses: actions/checkout@main
 
-      - name: 安装 go 环境
+      # 步骤2：在虚拟机中安装Go编程语言环境
+      - name: 设置 Go 环境
+        # 使用GitHub官方的setup-go Action来安装Go
         uses: actions/setup-go@v6
         with:
-          # 使用 go 最新的稳定版本
+          # 使用 go 最新的稳定版本（自动安装Go的最新稳定版本）
           go-version: stable
 
-      - name: 编译项目
+      # 步骤3：编译Go项目，生成多个平台的可执行文件
+      - name: 交叉编译多平台二进制文件
+        # 在虚拟机中执行shell命令
         run: |
-          # 创建输出目录
+          # 创建输出目录（用于存放编译后的可执行文件）
           mkdir -p dist
 
           # 打包后文件命名格式： [项目名]-[版本号]-[操作系统]-[架构].[扩展名]
-          # 编译 Android arm64（ 版本
+          
+          # 编译 Android arm64 版本（适用于安卓设备和ARM64架构的Linux设备）
+          # GOOS=linux: 目标操作系统为Linux
+          # GOARCH=arm64: 目标CPU架构为ARM64
+          # CGO_ENABLED=0: 禁用CGO，生成静态链接的可执行文件（不依赖系统库）
+          # -ldflags: 链接时传递的参数，这里将版本号注入到二进制文件中
+          # -o: 指定输出文件的路径和名称
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-android-arm64 ./main.go
-          # 编译 Linux amd64 版本
+          
+          # 编译 Linux amd64 版本（适用于大多数Linux服务器和桌面系统）
+          # GOARCH=amd64: 目标CPU架构为x86_64（64位Intel/AMD处理器）
           GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-linux-amd64 ./main.go
-          # 编译 Windows amd64 版本
+          
+          # 编译 Windows amd64 版本（适用于Windows 10/11等64位系统）
+          # GOOS=windows: 目标操作系统为Windows
+          # 输出文件会自动添加.exe扩展名
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-windows-amd64.exe ./main.go
-          # 编译 macOS amd64 版本
+          
+          # 编译 macOS amd64 版本（适用于Intel芯片的Mac电脑）
+          # GOOS=darwin: 目标操作系统为macOS
           GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-amd64 ./main.go
-          # 编译 macOS arm64 版本
+          
+          # 编译 macOS arm64 版本（适用于Apple Silicon芯片的Mac电脑：M1/M2/M3等）
+          # GOARCH=arm64: 目标CPU架构为ARM64（Apple Silicon）
           GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-X github.com/bynow2code/gofileserver/main.version=${{ github.ref_name }}" -o dist/gofileserver-${{ github.ref_name }}-macos-arm64 ./main.go
 
+      # 步骤4：在GitHub上创建Release并上传编译好的文件
       - name: 创建 Github Release
+        # 使用第三方Action来自动创建GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          # 触发工作流运行的分支或标记的短参考名称
+          # 触发工作流运行的分支或标记的短参考名称（Release关联的Git标签名称）
           tag: ${{ github.ref_name }}
-          # release title
+          # release title（Release的标题，在Releases页面显示的名称）
           name: Release ${{ github.ref_name }}
-          # 上传打包后的文件
+          # 上传打包后的文件（要上传到Release中的文件路径，支持通配符匹配）
           artifacts: dist/gofileserver-*
-          # release 正文
+          # release 正文（Release的详细说明文件，可选）
           #bodyFile: "body.md"
