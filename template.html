@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>文件列表</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .path { color: #666; margin-bottom: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 5px 0; }
+        a { text-decoration: none; color: #0066cc; }
+        a:hover { text-decoration: underline; }
+        .dir::before { content: "📁 "; }
+        .file::before { content: "📄 "; }
+    </style>
+</head>
+<body>
+<div class="path">路径: {{.currentPath}}</div>
+<ul>
+    {{if ne .currentPath "/"}}
+        <li class="parent">
+            <a href="{{.parentURL}}">返回上一层</a>
+        </li>
+        <hr>
+    {{end}}
+
+    {{range .files}}
+    {{if .isDir}}
+        <li class="dir"><a href="{{.url}}">{{.name}}/</a></li>
+    {{else}}
+        <li class="file"><a href="{{.url}}">{{.name}}</a></li>
+    {{end}}
+    {{end}}
+</ul>
+</body>
+</html>
