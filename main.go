@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
 	"html/template"
@@ -10,6 +11,9 @@ import (
 )
 
 var version = "0.0.0-dev"
+
+//go:embed templates/*
+var tplFS embed.FS
 
 func main() {
 	dir := flag.String("dir", ".", "要共享的目录（默认当前目录）")
@@ -79,7 +83,7 @@ func renderDirList(w http.ResponseWriter, r *http.Request, realPath string) {
 
 	parentURL := filepath.Dir(r.URL.Path)
 
-	tmpl, err := template.ParseFiles("template.html")
+	tmpl, err := template.ParseFS(tplFS, "templates/template.html")
 	if err != nil {
 		http.Error(w, fmt.Sprintf("解析模板错误：[%s]", err), http.StatusInternalServerError)
 		return
